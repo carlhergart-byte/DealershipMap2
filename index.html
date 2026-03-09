@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PACCAR Dealer Network — Peterbilt & Kenworth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pb-red: #CC1F26;
+    --pb-dark: #1a0608;
+    --kw-blue: #003087;
+    --kw-yellow: #F5A800;
+    --bg: #0d0e11;
+    --surface: #14161c;
+    --surface2: #1e2029;
+    --border: #2a2d38;
+    --text: #e8eaf0;
+    --muted: #7a7f94;
+    --accent: #ff6b35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: 56px;
+    flex-shrink: 0;
+    z-index: 100;
+    position: relative;
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  .brand-pb {
+    background: var(--pb-red);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+    padding-right: 28px;
+  }
+
+  .brand-kw {
+    background: var(--kw-blue);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 20px 0 28px;
+    gap: 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0 50%);
+  }
+
+  .brand-kw span.kw-dot { color: var(--kw-yellow); }
+
+  .header-title {
+    flex: 1;
+    padding: 0 20px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 1px;
+    height: 100%;
+    margin-right: 0;
+  }
+
+  .stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 18px;
+    background: var(--surface2);
+    border-left: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .stat-chip .num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+  .stat-chip .lbl {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-chip.pb .num { color: var(--pb-red); }
+  .stat-chip.kw .num { color: var(--kw-yellow); }
+
+  /* MAIN LAYOUT */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 340px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-controls {
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .filter-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+
+  .filter-btn.active-pb {
+    background: var(--pb-red);
+    border-color: var(--pb-red);
+    color: white;
+  }
+
+  .filter-btn.active-kw {
+    background: var(--kw-blue);
+    border-color: var(--kw-yellow);
+    color: var(--kw-yellow);
+  }
+
+  .filter-btn.active-all {
+    background: var(--surface2);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .search-box {
+    position: relative;
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 9px 12px 9px 36px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    border-radius: 2px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box input::placeholder { color: var(--muted); }
+
+  .search-box svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+  }
+
+  /* DEALER LIST */
+  .dealer-list {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .dealer-list::-webkit-scrollbar { width: 4px; }
+  .dealer-list::-webkit-scrollbar-track { background: transparent; }
+  .dealer-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .dealer-item {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .dealer-item:hover { background: var(--surface2); }
+  .dealer-item.selected { background: rgba(255, 107, 53, 0.08); border-left: 3px solid var(--accent); }
+
+  .dealer-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .dealer-badge.pb { background: var(--pb-red); color: white; }
+  .dealer-badge.kw { background: var(--kw-blue); color: var(--kw-yellow); }
+
+  .dealer-info h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+
+  .dealer-info .location {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .dealer-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 2px 5px;
+    border-radius: 1px;
+    letter-spacing: 0.5px;
+  }
+
+  .tag.bays { background: rgba(245, 168, 0, 0.15); color: var(--kw-yellow); }
+  .tag.emp { background: rgba(0, 48, 135, 0.3); color: #6ea6ff; }
+  .tag.mx { background: rgba(204, 31, 38, 0.2); color: #ff8888; }
+  .tag.award { background: rgba(255, 255, 255, 0.05); color: var(--muted); }
+
+  /* BRAND HISTORY PANEL */
+  .history-toggle {
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+  }
+
+  .hist-btn {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .hist-btn.active-pb { background: rgba(204,31,38,0.15); border-color: var(--pb-red); color: #ff8888; }
+  .hist-btn.active-kw { background: rgba(0,48,135,0.2); border-color: var(--kw-blue); color: #6ea6ff; }
+
+  /* MAP AREA */
+  .map-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #0a0c12;
+  }
+
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Leaflet overrides */
+  .leaflet-tile-pane { filter: grayscale(100%) brightness(0.35) sepia(0.3) hue-rotate(180deg); }
+  .leaflet-control-zoom a {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+  }
+  .leaflet-control-zoom a:hover { background: var(--surface2) !important; }
+  .leaflet-control-attribution { background: rgba(13,14,17,0.8) !important; color: var(--muted) !important; font-size: 9px !important; }
+
+  /* DETAIL PANEL */
+  .detail-panel {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 320px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    z-index: 1000;
+    transform: translateX(360px);
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .detail-panel.open { transform: translateX(0); }
+
+  .detail-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .detail-header h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    line-height: 1.2;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px;
+    flex-shrink: 0;
+    transition: color 0.2s;
+  }
+
+  .close-btn:hover { color: var(--text); }
+
+  .detail-brand-bar {
+    height: 3px;
+    width: 100%;
+  }
+
+  .detail-section {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .detail-section h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-card {
+    background: var(--surface2);
+    padding: 10px 12px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+  }
+
+  .stat-card .val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .stat-card .lbl {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-card.pb .val { color: #ff8888; }
+  .stat-card.kw .val { color: var(--kw-yellow); }
+
+  .detail-text {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #b0b4c4;
+  }
+
+  .ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .services-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .service-pill {
+    padding: 4px 9px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Barlow', sans-serif;
+  }
+
+  .ext-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ext-link.pb:hover { background: rgba(204,31,38,0.15); border-color: var(--pb-red); }
+  .ext-link.kw:hover { background: rgba(0,48,135,0.2); border-color: var(--kw-yellow); color: var(--kw-yellow); }
+
+  /* HISTORY MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    width: min(680px, 95vw);
+    max-height: 85vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
+
+  .modal-header h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .modal-header h2.pb { color: var(--pb-red); }
+  .modal-header h2.kw { color: var(--kw-yellow); }
+
+  .modal-body {
+    padding: 24px;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 28px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+    animation: fadeIn 0.4s ease backwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 6px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+  }
+
+  .timeline-item .year {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 3px;
+  }
+
+  .timeline-item .event {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #b0b4c4;
+  }
+
+  .modal-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-stat {
+    background: var(--surface2);
+    padding: 14px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .modal-stat .big {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 26px;
+    margin-bottom: 4px;
+  }
+
+  .modal-stat .lbl {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* CUSTOM MARKERS */
+  .marker-pb, .marker-kw {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    border: 2px solid;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  .marker-pb { background: var(--pb-red); border-color: rgba(255,255,255,0.3); color: white; }
+  .marker-kw { background: var(--kw-blue); border-color: var(--kw-yellow); color: var(--kw-yellow); }
+  .marker-pb:hover, .marker-kw:hover { transform: scale(1.3); }
+
+  .leaflet-div-icon { background: none; border: none; }
+
+  /* LEGEND */
+  .map-legend {
+    position: absolute;
+    bottom: 24px;
+    left: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    border-radius: 2px;
+    z-index: 900;
+    display: flex;
+    gap: 16px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 1px;
+    border: 1.5px solid;
+  }
+
+  .legend-dot.pb { background: var(--pb-red); border-color: rgba(255,255,255,0.3); }
+  .legend-dot.kw { background: var(--kw-blue); border-color: var(--kw-yellow); }
+
+  .count-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  .count-badge.pb { background: rgba(204,31,38,0.2); color: #ff8888; }
+  .count-badge.kw { background: rgba(0,48,135,0.3); color: #6ea6ff; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="brand-pb">PB</div>
+    <div class="brand-kw">KW<span class="kw-dot">.</span></div>
+  </div>
+  <div class="header-title">PACCAR Dealer Network — North America</div>
+  <div class="header-stats">
+    <div class="stat-chip pb">
+      <span class="num">425+</span>
+      <span class="lbl">Peterbilt<br>Locations</span>
+    </div>
+    <div class="stat-chip kw">
+      <span class="num">490+</span>
+      <span class="lbl">Kenworth<br>Locations</span>
+    </div>
+    <div class="stat-chip">
+      <span class="num">915+</span>
+      <span class="lbl">Total<br>Dealers</span>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-controls">
+      <div class="filter-row">
+        <button class="filter-btn active-all" id="btn-all" onclick="setFilter('all')">All</button>
+        <button class="filter-btn" id="btn-pb" onclick="setFilter('pb')">Peterbilt</button>
+        <button class="filter-btn" id="btn-kw" onclick="setFilter('kw')">Kenworth</button>
+      </div>
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Search dealer group or state…" id="search-input" oninput="filterList()">
+      </div>
+    </div>
+
+    <div class="dealer-list" id="dealer-list"></div>
+
+    <div class="history-toggle">
+      <button class="hist-btn" id="hist-pb" onclick="openHistory('pb')">▶ Peterbilt History</button>
+      <button class="hist-btn" id="hist-kw" onclick="openHistory('kw')">▶ Kenworth History</button>
+    </div>
+  </div>
+
+  <div class="map-container">
+    <div id="map"></div>
+
+    <div class="map-legend">
+      <div class="legend-item">
+        <div class="legend-dot pb"></div>
+        Peterbilt
+        <span class="count-badge pb">425+</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot kw"></div>
+        Kenworth
+        <span class="count-badge kw">490+</span>
+      </div>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div class="detail-panel" id="detail-panel">
+      <div class="detail-brand-bar" id="detail-bar"></div>
+      <div class="detail-header">
+        <div>
+          <h2 id="detail-name">Dealer Name</h2>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px" id="detail-location"></div>
+        </div>
+        <button class="close-btn" onclick="closeDetail()">✕</button>
+      </div>
+      <div id="detail-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<script>
+// ── DEALER DATA ────────────────────────────────────────────────────────────────
+const dealers = [
+  // PETERBILT GROUPS
+  { id: 1, brand: 'pb', name: 'The Peterbilt Store (Pete Store)', group: 'The Pete Store', state: 'VA/MD/NC/SC/GA/FL/TN/AL', lat: 36.8, lng: -76.3, employees: 1200, bays: 290, mxTechs: 95, locations: 30, founded: 1993, phone: '(757) 853-1111', website: 'https://www.thepetestore.com', award: 'NA Dealer of the Year 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Mobile Service', 'Financing', 'Red Oval Certified'], description: 'With 30 locations across the East Coast, The Pete Store is a flagship Peterbilt dealer group and winner of the 2024 North American Dealer of the Year. Known for SmartLINQ remote diagnostics support and a top-tier used truck Red Oval Certified program.' },
+  { id: 2, brand: 'pb', name: 'Rush Peterbilt Truck Centers', group: 'Rush Truck Centers', state: 'TX/NM/OK/NV/CO/FL/NE', lat: 30.2, lng: -97.7, employees: 3200, bays: 680, mxTechs: 220, locations: 60, founded: 1965, phone: '(800) 856-4415', website: 'https://www.rushtruckcenters.com/dealership-directory/peterbilt', award: 'Sales Excellence 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Body Shop', 'Leasing', 'Financing', 'Emergency Road Service'], description: 'Rush Truck Centers is one of the largest commercial vehicle dealer groups in North America. Their Peterbilt division spans Texas, New Mexico, Oklahoma, Nevada, Colorado, Florida, and Nebraska with over 60 locations offering full-service capabilities.' },
+  { id: 3, brand: 'pb', name: 'Jackson Group Peterbilt', group: 'Jackson Group', state: 'UT/ID/OR/MT/WY/WA/CO', lat: 40.7, lng: -111.9, employees: 900, bays: 210, mxTechs: 72, locations: 33, founded: 1955, phone: '(801) 974-7700', website: 'https://jgpete.com', award: 'NA Dealer Group of the Year 2023', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Leasing', 'Rentals', 'Financing', 'TRP Stores'], description: 'Based in Salt Lake City, Jackson Group Peterbilt operates 33 locations across 8 western states. They are the only dealer group to win the North American Dealer Group of the Year award four times and have received the Best-in-Class award for 19 consecutive years (2006–2024).' },
+  { id: 4, brand: 'pb', name: 'Dobbs Peterbilt', group: 'Dobbs Truck Group', state: 'AR/CA/LA/MS/OR/TN/WA', lat: 35.1, lng: -90.0, employees: 650, bays: 160, mxTechs: 54, locations: 18, founded: 1946, phone: '(800) 467-6227', website: 'https://www.dobbspeterbilt.com', award: 'Sales Excellence 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Financing', 'Leasing & Rentals'], description: 'Dobbs Peterbilt operates full-service Peterbilt dealerships across the South and West, including Arkansas, California, Louisiana, Mississippi, Oregon, Tennessee, and Washington. A multiple award winner for sales excellence.' },
+  { id: 5, brand: 'pb', name: 'Allstate Peterbilt Group', group: 'Allstate Peterbilt', state: 'MN/WI/IA/SD/ND', lat: 44.9, lng: -93.2, employees: 720, bays: 175, mxTechs: 62, locations: 24, founded: 1967, phone: '(651) 686-1700', website: 'https://www.allstatepeterbilt.com', award: 'NA Dealer Group of the Year 2025', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Body Shop', 'Leasing', 'Financing'], description: 'Allstate Peterbilt Group is headquartered in Eagan, Minnesota, and holds the 2025 North American Dealer Group of the Year and Service Dealer Group of the Year awards. They serve the upper Midwest with 24 locations across Minnesota, Wisconsin, Iowa, South Dakota, and North Dakota.' },
+  { id: 6, brand: 'pb', name: 'TLG Peterbilt', group: 'Transport Logistics Group', state: 'MI/OH/IN/KY/PA', lat: 42.3, lng: -83.0, employees: 680, bays: 165, mxTechs: 55, locations: 22, founded: 1971, phone: '(800) 875-3782', website: 'https://www.tlgtrucks.com', award: 'Best-in-Class 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Financing', 'Leasing'], description: 'TLG Peterbilt serves the Great Lakes and Mid-Atlantic regions across Michigan, Ohio, Indiana, Kentucky, and Pennsylvania. Known for strong customer satisfaction scores and a robust parts supply chain.' },
+  { id: 7, brand: 'pb', name: 'LaBeau Bros. Peterbilt', group: 'LaBeau Bros.', state: 'MI/WI', lat: 43.6, lng: -84.7, employees: 320, bays: 78, mxTechs: 28, locations: 9, founded: 1958, phone: '(989) 773-4673', website: 'https://www.labeaubros.com', award: 'Best-in-Class 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Financing'], description: 'LaBeau Bros. Peterbilt is a family-owned dealer group operating since 1958 across Michigan and Wisconsin. A consistent Best-in-Class award recipient and recognized for exceptional service department performance.' },
+  { id: 8, brand: 'pb', name: 'Excellence Peterbilt', group: 'Excellence Peterbilt', state: 'IL/MO/KS', lat: 39.1, lng: -88.5, employees: 410, bays: 100, mxTechs: 36, locations: 12, founded: 1979, phone: '(217) 342-4955', website: 'https://www.excellencepeterbilt.com', award: 'Medium Duty Dealer Group 2025', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Leasing', 'Medium Duty Specialist'], description: 'Excellence Peterbilt is the 2025 Medium Duty Dealer Group of the Year, serving Illinois, Missouri, and Kansas. Specializes in Peterbilt medium-duty commercial truck sales and has built strong ties with vocational fleet customers.' },
+  { id: 9, brand: 'pb', name: 'Peterbilt of Canada (Sainte-Thérèse Plant Dealers)', group: 'Peterbilt Canada Network', state: 'QC/ON/AB', lat: 45.6, lng: -73.9, employees: 480, bays: 110, mxTechs: 38, locations: 14, founded: 1975, phone: 'N/A', website: 'https://www.peterbilt.com/find-a-dealer', award: '', services: ['New Sales', 'Parts', 'Service', 'Medium Duty', 'Financing'], description: 'The Canadian Peterbilt dealer network supports the Sainte-Thérèse, Quebec manufacturing plant, which produces Peterbilt medium-duty trucks. Dealers span Quebec, Ontario, and Alberta serving the Canadian heavy truck market.' },
+
+  // KENWORTH GROUPS
+  { id: 10, brand: 'kw', name: 'Kenworth Northeast Group', group: 'Kenworth Northeast', state: 'NY/NJ/CT/MA/RI/NH/VT/ME', lat: 41.7, lng: -72.7, employees: 950, bays: 215, mxTechs: 78, locations: 28, founded: 1962, phone: '(800) 526-4466', website: 'https://www.kenworthnortheast.com', award: 'PremierCare Gold Certified 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'TRP Stores', 'Leasing', 'Financing'], description: 'Kenworth Northeast Group is one of the most active growing dealer groups in the Kenworth network. In 2024 alone they opened new full-service dealerships in North Andover, MA and Providence, RI, and a TRP store in Frankfort, NY. They hold PremierCare Gold Certification across their network.' },
+  { id: 11, brand: 'kw', name: 'MHC Kenworth', group: 'MHC Truck Leasing', state: 'MO/KS/OK/TX/AR/TN/MS/AL/GA', lat: 36.2, lng: -94.1, employees: 2100, bays: 490, mxTechs: 168, locations: 48, founded: 1956, phone: '(800) 264-6511', website: 'https://www.mhc.com', award: 'PremierCare Gold Certified 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Leasing', 'Rentals', 'Carrier Transicold', 'Body Shop'], description: 'MHC Kenworth is one of the largest Kenworth dealer groups in North America, spanning 9 states across the South and Midwest. In 2024 they opened new facilities in Hammond, LA, Midland, TX, and Hutto, TX, and relocated their Cheyenne, WY and Oklahoma City, OK locations to modern facilities.' },
+  { id: 12, brand: 'kw', name: 'Papé Kenworth', group: 'Papé Group', state: 'WA/OR/CA/NV/AK', lat: 47.6, lng: -122.3, employees: 1300, bays: 310, mxTechs: 110, locations: 32, founded: 1938, phone: '(800) 729-7273', website: 'https://www.papekenworth.com', award: 'PremierCare Gold Certified 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Body Shop', 'Leasing', 'Rentals', '24/7 Uptime'], description: 'Papé Kenworth is a cornerstone of the Pacific Northwest Kenworth network and one of the oldest dealer groups in North America. In 2024 they relocated their Federal Way, WA facility to a massive 73,000 sq ft, 23-bay facility on 12 paved acres off I-5. Serves WA, OR, CA, NV, and AK.' },
+  { id: 13, brand: 'kw', name: 'Inland Kenworth', group: 'Inland Group', state: 'BC/AB/SK/WA', lat: 49.2, lng: -122.8, employees: 850, bays: 195, mxTechs: 66, locations: 22, founded: 1952, phone: '(604) 276-0221', website: 'https://www.inlandtruck.com', award: 'PremierCare Gold Certified 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'TRP Stores', 'Leasing', 'Body Shop'], description: 'Inland Kenworth serves British Columbia, Alberta, Saskatchewan, and Washington State. In 2024 they expanded their TRP footprint with a new parts and service facility in Smithers, BC. Strong presence in the Canadian oilfield and mining sectors.' },
+  { id: 14, brand: 'kw', name: 'Truckworx Kenworth', group: 'Truckworx', state: 'AL/MS/TN/GA', lat: 33.5, lng: -86.8, employees: 580, bays: 135, mxTechs: 46, locations: 16, founded: 1974, phone: '(205) 791-1200', website: 'https://www.truckworx.com', award: 'PremierCare Gold Certified 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Leasing', 'Rentals', 'Financing'], description: 'Truckworx Kenworth serves Alabama, Mississippi, Tennessee, and Georgia. In 2024 they opened a new full-service dealership in Laurel, MS. Known for strong customer relationships in the Southeast vocational and long-haul markets.' },
+  { id: 15, brand: 'kw', name: 'All Roads Kenworth', group: 'All Roads Kenworth', state: 'VA/MD/DE/PA/FL', lat: 38.9, lng: -77.0, employees: 520, bays: 120, mxTechs: 42, locations: 15, founded: 1988, phone: '(800) 366-2345', website: 'https://www.allroadskenworth.com', award: 'PremierCare Gold Certified 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Mobile Maintenance', 'Custom Body', 'Financing'], description: 'All Roads Kenworth is a leading Mid-Atlantic and South Florida Kenworth dealer group with 15 locations. They offer mobile fleet maintenance, custom truck body solutions, and a network of TRP stores for all-makes parts.' },
+  { id: 16, brand: 'kw', name: 'Kenworth of Louisiana', group: 'KW Louisiana', state: 'LA', lat: 30.5, lng: -91.1, employees: 280, bays: 72, mxTechs: 26, locations: 7, founded: 1968, phone: '(225) 272-7300', website: 'https://www.kenworth.com/dealers', award: 'PremierCare Gold 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Leasing', 'Financing'], description: 'Kenworth of Louisiana opened a brand-new 30,000 sq ft flagship facility in Hammond, LA in 2024 near Interstate 12 with 22 service bays and a 7,000 sq ft parts warehouse. Serves the Gulf Coast oilfield, agriculture, and construction sectors.' },
+  { id: 17, brand: 'kw', name: 'Bayview Kenworth', group: 'Bayview Kenworth', state: 'NB/NS/PEI', lat: 46.1, lng: -64.8, employees: 180, bays: 28, mxTechs: 11, locations: 5, founded: 1977, phone: '(506) 857-4300', website: 'https://www.bayviewkenworth.com', award: 'Expansion Excellence 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Leasing'], description: 'Bayview Kenworth serves Atlantic Canada across New Brunswick, Nova Scotia, and Prince Edward Island. In 2024 they relocated to a brand-new 28,000 sq ft facility on 6 acres near the TransCanada Highway in Moncton, NB, featuring 12 service bays and a state-of-the-art parts warehouse.' },
+  { id: 18, brand: 'kw', name: 'Kenworth Sales Co. (KWSCo)', group: 'KW Sales Company', state: 'NV/UT/WY/CO/MT', lat: 40.8, lng: -112.1, employees: 460, bays: 108, mxTechs: 38, locations: 13, founded: 1946, phone: '(801) 262-3116', website: 'https://www.kenworthsalesco.com', award: 'PremierCare Gold 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Leasing', 'Body Shop', 'PacLease'], description: 'Kenworth Sales Company (KWSCo) is one of the oldest Kenworth dealer groups in the Intermountain West, serving Nevada, Utah, Wyoming, Colorado, and Montana. Their Las Vegas facility has served customers since 2008. Known for strong PacLease operations and 24/7 service capabilities.' },
+  { id: 19, brand: 'kw', name: 'Gabrielli Kenworth', group: 'Gabrielli Truck Sales', state: 'NY/NJ/CT', lat: 40.7, lng: -74.0, employees: 310, bays: 74, mxTechs: 27, locations: 9, founded: 1971, phone: '(718) 347-5000', website: 'https://www.gabriellitruck.com', award: 'PremierCare Gold Certified', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'Financing', 'Medium Duty K370'], description: 'Gabrielli Kenworth is a well-established PremierCare dealer serving New York City metro, New Jersey, and Connecticut. Specializes in both heavy-duty Class 8 trucks and the medium-duty Kenworth K370, popular for urban delivery, towing, and refrigerated transport applications.' },
+  { id: 20, brand: 'kw', name: 'CIT Trucks (Kenworth)', group: 'CIT Trucks LLC', state: 'IL/IN/IA', lat: 41.8, lng: -88.0, employees: 420, bays: 98, mxTechs: 34, locations: 11, founded: 1969, phone: '(630) 595-4800', website: 'https://www.cittrucks.com', award: 'Expansion Excellence 2024', services: ['New Sales', 'Used Sales', 'Parts', 'Service', 'TRP Store', 'Leasing', 'Financing'], description: 'CIT Trucks relocated and upgraded their Bensenville, IL facility to a massive new full-service dealership in Wood Dale, IL in 2024. The 115,500 sq ft facility sits on 7.2 acres near I-390. CIT serves Illinois, Indiana, and Iowa with 11 locations.' },
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentFilter = 'all';
+let selectedId = null;
+let markers = {};
+let map;
+
+// ── INIT MAP ──────────────────────────────────────────────────────────────────
+function initMap() {
+  map = L.map('map', {
+    center: [42, -96],
+    zoom: 4,
+    zoomControl: true,
+    attributionControl: true,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 18,
+  }).addTo(map);
+
+  dealers.forEach(d => {
+    const size = Math.min(28 + Math.floor(d.locations / 5) * 2, 44);
+    const cls = d.brand === 'pb' ? 'marker-pb' : 'marker-kw';
+    const lbl = d.brand === 'pb' ? 'PB' : 'KW';
+
+    const icon = L.divIcon({
+      className: 'leaflet-div-icon',
+      html: `<div class="${cls}" style="width:${size}px;height:${size}px;border-radius:3px;font-size:${size > 34 ? 11 : 9}px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;letter-spacing:0.5px;border:2px solid ${d.brand === 'pb' ? 'rgba(255,255,255,0.3)' : '#F5A800'};background:${d.brand === 'pb' ? '#CC1F26' : '#003087'};color:${d.brand === 'pb' ? 'white' : '#F5A800'};box-shadow:0 2px 8px rgba(0,0,0,0.6);cursor:pointer">${lbl}</div>`,
+      iconSize: [size, size],
+      iconAnchor: [size/2, size/2],
+    });
+
+    const marker = L.marker([d.lat, d.lng], { icon })
+      .addTo(map)
+      .on('click', () => openDetail(d.id));
+
+    markers[d.id] = marker;
+  });
+}
+
+// ── FILTER ────────────────────────────────────────────────────────────────────
+function setFilter(f) {
+  currentFilter = f;
+  document.getElementById('btn-all').className = 'filter-btn' + (f === 'all' ? ' active-all' : '');
+  document.getElementById('btn-pb').className = 'filter-btn' + (f === 'pb' ? ' active-pb' : '');
+  document.getElementById('btn-kw').className = 'filter-btn' + (f === 'kw' ? ' active-kw' : '');
+
+  dealers.forEach(d => {
+    const show = f === 'all' || d.brand === f;
+    if (show) markers[d.id].addTo(map);
+    else map.removeLayer(markers[d.id]);
+  });
+
+  renderList();
+}
+
+function filterList() {
+  renderList();
+}
+
+function getFiltered() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  return dealers.filter(d => {
+    const brandMatch = currentFilter === 'all' || d.brand === currentFilter;
+    const searchMatch = !q || d.name.toLowerCase().includes(q) || d.state.toLowerCase().includes(q) || d.group.toLowerCase().includes(q);
+    return brandMatch && searchMatch;
+  });
+}
+
+// ── RENDER LIST ───────────────────────────────────────────────────────────────
+function renderList() {
+  const list = document.getElementById('dealer-list');
+  const filtered = getFiltered();
+  list.innerHTML = '';
+
+  filtered.forEach(d => {
+    const div = document.createElement('div');
+    div.className = 'dealer-item' + (selectedId === d.id ? ' selected' : '');
+    div.onclick = () => openDetail(d.id);
+
+    const badgeClass = d.brand === 'pb' ? 'pb' : 'kw';
+    const badgeText = d.brand === 'pb' ? 'PB' : 'KW';
+
+    div.innerHTML = `
+      <div class="dealer-badge ${badgeClass}">${badgeText}</div>
+      <div class="dealer-info">
+        <h3>${d.name}</h3>
+        <div class="location">📍 ${d.state}</div>
+        <div class="dealer-tags">
+          <span class="tag bays">⚙ ${d.bays} bays</span>
+          <span class="tag emp">👥 ${d.employees.toLocaleString()} emp</span>
+          <span class="tag mx">🔧 ${d.mxTechs} MX techs</span>
+          ${d.award ? `<span class="tag award">🏆 ${d.award.substring(0, 18)}…</span>` : ''}
+        </div>
+      </div>`;
+
+    list.appendChild(div);
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">No dealers match your search</div>';
+  }
+}
+
+// ── DETAIL PANEL ──────────────────────────────────────────────────────────────
+function openDetail(id) {
+  const d = dealers.find(x => x.id === id);
+  if (!d) return;
+
+  selectedId = id;
+  renderList();
+
+  // Fly map to dealer
+  map.flyTo([d.lat, d.lng], 6, { animate: true, duration: 0.8 });
+
+  // Set header
+  document.getElementById('detail-name').textContent = d.name;
+  document.getElementById('detail-location').textContent = `${d.state} · ${d.locations} locations`;
+  document.getElementById('detail-bar').style.background = d.brand === 'pb'
+    ? 'var(--pb-red)'
+    : 'linear-gradient(90deg, var(--kw-blue), var(--kw-yellow))';
+
+  const cls = d.brand === 'pb' ? 'pb' : 'kw';
+  const servicesHtml = d.services.map(s => `<span class="service-pill">${s}</span>`).join('');
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-section">
+      <h4>Key Figures</h4>
+      <div class="stats-grid">
+        <div class="stat-card ${cls}">
+          <div class="val">${d.locations}</div>
+          <div class="lbl">Locations</div>
+        </div>
+        <div class="stat-card ${cls}">
+          <div class="val">${d.employees.toLocaleString()}</div>
+          <div class="lbl">Employees</div>
+        </div>
+        <div class="stat-card ${cls}">
+          <div class="val">${d.bays}</div>
+          <div class="lbl">Service Bays</div>
+        </div>
+        <div class="stat-card ${cls}">
+          <div class="val">${d.mxTechs}</div>
+          <div class="lbl">MX Techs</div>
+        </div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <h4>About</h4>
+      <p class="detail-text">${d.description}</p>
+      ${d.award ? `<div style="margin-top:10px;padding:8px 10px;background:rgba(255,107,53,0.08);border-left:3px solid var(--accent);font-size:12px;color:var(--accent)">🏆 ${d.award}</div>` : ''}
+    </div>
+    <div class="detail-section">
+      <h4>Services Offered</h4>
+      <div class="services-list">${servicesHtml}</div>
+    </div>
+    <div class="detail-section" style="border-bottom:none">
+      <h4>Founded ${d.founded} · ${d.phone}</h4>
+      <a class="ext-link ${cls}" href="${d.website}" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        Visit Official Website
+      </a>
+    </div>`;
+
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetail() {
+  selectedId = null;
+  document.getElementById('detail-panel').classList.remove('open');
+  renderList();
+}
+
+// ── HISTORY MODAL ─────────────────────────────────────────────────────────────
+const historyData = {
+  pb: {
+    title: 'Peterbilt Motors Company',
+    subtitle: 'Founded 1939 · Denton, Texas · PACCAR Subsidiary',
+    color: '#CC1F26',
+    stats: [
+      { big: '1939', lbl: 'Year Founded' },
+      { big: '425+', lbl: 'NA Dealer Locations' },
+      { big: '750K+', lbl: 'Trucks Built in Denton' },
+    ],
+    timeline: [
+      { year: '1939', event: 'T.A. Peterman purchases the Fageol Truck & Motor Co. plant in Oakland, CA for $50,000 and founds Peterbilt Motors Company. The first trucks — chain-drive Model 260 and shaft-drive Model 334 — roll out in April. 16 vehicles shipped by year end.' },
+      { year: '1944', event: 'T.A. Peterman passes away at age 51, leaving the company to his wife Ida. Peterbilt had secured a military contract for 224 trucks. In 1947, Ida sells to a group of managers for $450,000.' },
+      { year: '1953', event: 'The iconic Red Oval badge is introduced, becoming a lasting symbol of Peterbilt quality and craftsmanship still used today on every truck produced.' },
+      { year: '1958', event: 'Pacific Car & Foundry (later PACCAR) acquires Peterbilt for a reported price that marked the beginning of the brand\'s expansion era. PACCAR had already acquired Kenworth in 1945.' },
+      { year: '1969', event: 'A second manufacturing facility opens in Madison, Tennessee to supplement production. The facility focuses initially on cab-over-engine models.' },
+      { year: '1975', event: 'Peterbilt Canada opens in Sainte-Thérèse, Quebec, near Montreal, dedicated to low-cab COE vehicles primarily for refuse applications.' },
+      { year: '1979', event: 'The legendary Model 379 is introduced — it goes on to become the most popular owner-operator truck of all time, with over 100,000 units produced over its 27-year run.' },
+      { year: '1980', event: 'Peterbilt\'s primary manufacturing facility opens in Denton, Texas on an 80-acre, 435,000 sq ft campus. The first truck produced is a Model 359, nicknamed "Old No. 1."' },
+      { year: '1986', event: 'Newark, CA facility closes after 26 years. All Class 8 production consolidates in Denton, TX. The Model 379 dominates production capacity.' },
+      { year: '1993', event: 'Corporate headquarters officially relocates from California to Denton, Texas, joining the primary manufacturing plant with over 1,200 employees.' },
+      { year: '2006', event: 'Model 389 replaces the Model 379, carrying on the iconic long-hood legacy. More than 100,000 389s would eventually be produced, making it one of Peterbilt\'s most successful models.' },
+      { year: '2015', event: 'Denton facility celebrates 35 years and has produced nearly 500,000 trucks. Peterbilt introduces robotic cab assembly for Models 579 and 567.' },
+      { year: '2023', event: 'Peterbilt celebrates its 750,000th truck assembled in Denton, delivering it to longtime customer TMC Transportation. The Model 589 debuts at Texas Motor Speedway before a crowd of 5,000+.' },
+      { year: '2024', event: 'Peterbilt celebrates 85 years. EV lineup expands with Models 579EV, 520EV, and 220EV. Dealer network grows to 425+ locations across North America. The Cummins X15N natural gas engine becomes available.' },
+    ]
+  },
+  kw: {
+    title: 'Kenworth Truck Company',
+    subtitle: 'Founded 1923 · Kirkland, Washington · PACCAR Subsidiary',
+    color: '#F5A800',
+    stats: [
+      { big: '1923', lbl: 'Year Founded' },
+      { big: '490+', lbl: 'NA Dealer Locations' },
+      { big: '1.3M+', lbl: 'Trucks Built Lifetime' },
+    ],
+    timeline: [
+      { year: '1912', event: 'Gerlinger Motor Car Works established in Portland, Oregon by brothers George T. and Louis Gerlinger Jr. as a car and truck dealership. By 1914 they build their own six-cylinder structural steel truck — the Gersix.' },
+      { year: '1917', event: 'Edgar K. Worthington purchases Gerlinger/Gersix Motor Company with partner Captain Frederick Kent. The Gersix trucks find popularity with Pacific Northwest loggers.' },
+      { year: '1923', event: 'In January, Gersix Motor Company is reincorporated as Kenworth Motor Truck Company, combining the names of partners Harry Kent and Edgar Worthington. 78 six-cylinder, gasoline-powered trucks are produced that first year.' },
+      { year: '1927', event: 'Canadian manufacturing begins to avoid import duties. Harry Kent becomes company president. Production expands to three vehicles per week.' },
+      { year: '1933', event: 'Kenworth becomes the first American truck manufacturer to install diesel engines as standard equipment — a landmark technological advancement that revolutionizes commercial trucking efficiency.' },
+      { year: '1944', event: 'Pacific Car and Foundry (later PACCAR) purchases Kenworth. During WWII, Kenworth had built heavy-duty wreckers for the Army and sub-assemblies for the Boeing B-17 bomber.' },
+      { year: '1961', event: 'The legendary Kenworth W900 enters production — a model that remains in continuous production to this day, making it one of the longest production runs of any vehicle in automotive history.' },
+      { year: '1974', event: 'A new manufacturing facility opens in Chillicothe, Ohio, significantly expanding production capacity. The W900 and K100 receive major updates.' },
+      { year: '1976', event: 'Kenworth launches the VIT (Very Important Trucker) flagship series with the Aerodyne sleeper cab — the first factory-produced sleeper cab with stand-up headroom, another Kenworth first in truck innovation.' },
+      { year: '1993', event: 'Kenworth opens its third U.S. assembly plant in Renton, Washington, which becomes the primary manufacturing hub for Class 8 conventional trucks including the T680 and W900.' },
+      { year: '1999', event: 'PACCAR opens a new state-of-the-art Ste-Thérèse, Quebec plant dedicated to medium-duty Kenworth trucks (T170, T270, T370). The plant earns ISO 9000, ISO 14001, and OHSAS 18001 certifications.' },
+      { year: '2012', event: 'The Kenworth T680 is introduced, representing a new generation of aerodynamic design developed with input from over 100 professional drivers. It becomes the top-selling Class 8 model in North America.' },
+      { year: '2023', event: 'Kenworth celebrates its centennial — 100 years of building trucks. A limited-edition W900 centennial series is launched. The company has delivered over 1.3 million trucks in its history.' },
+      { year: '2024', event: 'Dealer network expands to 490+ locations with a record 321 PremierCare Gold Certified dealerships. Jim Walenczak appointed General Manager. 21 new or relocated dealerships opened or completed across North America.' },
+    ]
+  }
+};
+
+function openHistory(brand) {
+  const data = historyData[brand];
+  const cls = brand;
+  const modal = document.getElementById('modal-content');
+
+  const statsHtml = data.stats.map(s => `
+    <div class="modal-stat">
+      <div class="big" style="color:${data.color}">${s.big}</div>
+      <div class="lbl">${s.lbl}</div>
+    </div>`).join('');
+
+  const timelineHtml = data.timeline.map((t, i) => `
+    <div class="timeline-item" style="animation-delay:${i * 0.04}s">
+      <div class="year">${t.year}</div>
+      <div class="event">${t.event}</div>
+    </div>`).join('');
+
+  modal.innerHTML = `
+    <div class="modal-header">
+      <div>
+        <h2 class="${cls}">${data.title}</h2>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">${data.subtitle}</div>
+      </div>
+      <button class="close-btn" onclick="closeModal()" style="font-size:22px">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-stats">${statsHtml}</div>
+      <h4 style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Company Timeline</h4>
+      <div class="timeline">${timelineHtml}</div>
+    </div>`;
+
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById(`hist-${brand}`).classList.add(`active-${brand}`);
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.querySelectorAll('.hist-btn').forEach(b => b.className = 'hist-btn');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initMap();
+  renderList();
+});
+</script>
+</body>
+</html>
